@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 하나뿐인 달에게 🌕</title>
+    <style>
+        /* 기본 폰트 및 스타일 초기화 */
+        @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Mainami+One&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Gowun Batang', serif;
+            background-color: #FFF0F5; /* 라벤더 블러쉬 (연분홍) */
+            color: #4A373A;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        /* 1. 인트로 화면 (편지 봉투 느낌) */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FFE4E1, #FFF0F5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease;
+        }
+
+        .envelope-box {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(244, 182, 193, 0.4);
+            border: 2px dashed #F4B6C1;
+        }
+
+        .envelope-box h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #D87093;
+        }
+
+        .open-btn {
+            padding: 12px 35px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: #F4B6C1;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(244, 182, 193, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .open-btn:hover {
+            background-color: #E89BB0;
+            transform: scale(1.05);
+        }
+
+        /* 2. 본문 편지 콘텐츠 */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        /* 스크롤 애니메이션을 위한 클래스 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.2s ease, transform 1.2s ease;
+            margin-bottom: 80px; /* 각 문단 사이 여백 */
+            font-size: 1.15rem;
+            word-break: keep-all;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .highlight-text {
+            font-size: 1.3rem;
+            color: #D87093;
+            font-weight: bold;
+        }
+
+        /* 3. 프로포즈 제안 및 버튼 섹션 */
+        .proposal-section {
+            margin-top: 150px;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(244, 182, 193, 0.5);
+        }
+
+        .proposal-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #C71585;
+            margin-bottom: 40px;
+            word-break: keep-all;
+        }
+
+        .accept-btn {
+            padding: 15px 40px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #F4B6C1, #FFB6C1);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(244, 182, 193, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .accept-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 8px 25px rgba(244, 182, 193, 0.8);
+        }
+
+        /* 4. 숨겨진 비밀 편지 */
+        #secret-letter-box {
+            display: none;
+            margin-top: 50px;
+            padding: 40px 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border-left: 5px solid #F4B6C1;
+            text-align: left;
+            animation: slideDown 1.5s ease forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #secret-letter-box h3 {
+            color: #D87093;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        /* 하트 파티클 캔버스 */
+        #heart-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 오디오 재생 (BGM) -->
+    <audio id="bgm" src="입춘.mp3" loop></audio>
+
+    <canvas id="heart-canvas"></canvas>
+
+    <div id="intro-overlay">
+        <div class="envelope-box">
+            <h2>당신의 프로포즈에 대한<br>나의 소중한 답장이야 💌</h2>
+            <button class="open-btn" onclick="openLetter()">편지 열어보기</button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="fade-in">
+            어쩌면,<br>
+            오늘을 위해,<br> 
+            비로소 행복해지기 위해 달려왔던 건 아닐까.
+        </div>
+
+        <div class="fade-in highlight-text">
+            그리 찬란하지 않았던 내 세상에 당신이 들어와<br> 
+            기어코 찬란한 달이 되어주는구나.
+        </div>
+
+        <div class="fade-in">
+            해가 뜬 낮에도, 어두운 밤에도, 고요한 새벽에도.<br>
+            나의 작은 방을 환하게 비추며<br> 
+            <span style="color: #D87093;">'나 여기 있으니 괜찮다'</span>고 안아주는 당신 덕분에<br>
+            나는 이제 더 바랄 것이 없어.
+        </div>
+
+        <div class="fade-in">
+            다정한 날들로 가득했을 것 같던 나의 세상은 사실 그 반대였어.<br>
+            나의 지난 시간은 지쳐 우는 내게 다정히 말을 걸어주는 법이 없었지.
+        </div>
+
+        <div class="fade-in">
+            어느 해 겨울, 차라리 내가 없는 게 낫겠다는 어리석은 생각도 했었어.<br>
+            날을 세우고 달려드는 시선과 말들을 그저 맞고만 있었고,<br>
+            내 이름이 지워지는 일마저도 의연하게 받아들일 만큼 바닥이었으니까.
+        </div>
+
+        <div class="fade-in highlight-text">
+            하지만 결국 살아남아,<br>
+            느리지만 멈추지 않고 옮겼던 그 모든 걸음들이<br>
+            결국엔 당신에게 닿기 위함이었나 봐.
+        </div>
+
+        <div class="fade-in">
+            세상이 주지 않은 다정과, 허락하지 않은 평화를<br> 
+            나는 스스로 만들어보기로 했어.<br>
+            따뜻한 언어로 누군가를 행복하게 만들기 위해 애썼고<br>
+            지금의 내가 되기까지 쉼 없이 걷고 또 걸었지.
+        </div>
+
+        <div class="fade-in" style="font-size: 1.25rem; font-weight: bold; color: #D87093;">
+            그리고 마침내,<br> 
+            당신이라는 가장 커다란 선물을 안게 되었네.
+        </div>
+
+        <div class="fade-in">
+            신을 원망하며 울음으로 밤을 지새웠던 날들마저 고마워져.<br>
+            아무리 노력해도 가질 수 없던 고요함도,<br>
+            사랑받지 못해 버려질까 두려워 도망치던 수많은 밤들도.
+        </div>
+
+        <div class="fade-in">
+            어쩌면, 정말 어쩌면.
+        </div>
+
+        <div class="fade-in" style="font-size: 1.2rem; font-weight: bold;">
+            너무 아름다운 당신을 내게 주시려고.<br>
+            지금까지 잘 살아남았으니, 이제는 정말 행복해져도 된다고<br>
+            내게 말해주는 것 같아서.
+        </div>
+
+        <div class="proposal-section fade-in">
+            <p class="proposal-text">"나의 찬란한 달이 되어준 당신, 이제 나의 하나뿐인 반려가 되어줄래?"</p>
+            <button class="accept-btn" id="accept-btn" onclick="revealSecretLetter()">토끼와 평생 함께 하기</button>
+            
+            <!-- 4. 숨겨진 비밀 편지 (버튼 클릭시 나타남) -->
+            <div id="secret-letter-box">
+                <h3>To. 나의 소중한 사람 🤍</h3>
+                
+                <!-- 첫 번째 사진 -->
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <img src="https://i.imgur.com/4gfyZM1.png" alt="우리의 첫 번째 사진" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 15px; box-shadow: 0 5px 15px rgba(244, 182, 193, 0.3);">
+                </div>
+
+                <!-- 기존 멘트 -->
+                <p style="margin-bottom: 30px; text-align: center; line-height: 1.8; word-break: keep-all;">
+                    언제나 내 곁을 지켜줘서 고마워요.<br>당신의 프로포즈를 받고 얼마나 행복했는지 몰라요.<br>
+                    내가 평생 아껴주고 사랑할게요.<br>우리 예쁘게, 그리고 행복하게 살아보자! 사랑해!
+                </p>
+
+                <!-- 우리의 약속 리스트 -->
+                <div style="background-color: #FFF5F7; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px dashed #F4B6C1;">
+                    <h4 style="color: #D87093; text-align: center; margin-bottom: 20px; font-size: 1.1rem;">작은 나의 약속 💍</h4>
+                    <ul style="list-style: none; padding: 0; line-height: 1.8; word-break: keep-all;">
+                        <li style="margin-bottom: 12px;"><b>01.</b> 당신의 곁에서 발걸음을 맞추며 그 어떤 소란도, 고요도 함께 할게요.</li>
+                        <li style="margin-bottom: 12px;"><b>02.</b> 당신의 모든 시간이 행복한 것들로 가득 채워질 수 있도록 노력할게요.</li>
+                        <li style="margin-bottom: 12px;"><b>03.</b> 나이가 들고 지금과 다른 모습이 된다고 해도, 처음과 같은 마음으로 사랑할게요.</li>
+                        <li><b>04.</b> 무슨 일이 생겨도 흔들리지 않고 곁을 지키는 든든한 버팀목이 될게요.</li>
+                    </ul>
+                </div>
+
+                <!-- 서명 및 날짜 -->
+                <div style="text-align: center; margin-bottom: 35px; line-height: 1.8;">
+                    <p style="font-size: 1.3rem; font-weight: bold; color: #D87093; margin-bottom: 5px;">문이든 ♥ 이라온</p>
+                    <p style="color: #666;">2026년 06월 07일</p>
+                    <p style="margin-top: 15px; font-weight: bold;">우리의 시작에 무한한 감사를 드리며.</p>
+                </div>
+
+                <!-- 마지막 사진 -->
+                <div style="text-align: center;">
+                    <img src="https://i.imgur.com/MHtUXDJ.png" alt="우리의 마지막 사진" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 15px; box-shadow: 0 5px 15px rgba(244, 182, 193, 0.3);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔻 스크립트(엔진) 추가 🔻 -->
+    <script>
+        /* 편지 열기 및 BGM 재생 */
+        function openLetter() {
+            const overlay = document.getElementById('intro-overlay');
+            const bgm = document.getElementById('bgm');
+            
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 1000);
+
+            // 음악 재생 시작
+            bgm.play().catch(error => {
+                console.log("자동 재생이 차단되었습니다.", error);
+            });
+            
+            // 편지 열린 후 첫 요소들 체크
+            checkVisibility();
+        }
+
+        /* 스크롤 애니메이션 (Fade-in) */
+        const fadeElements = document.querySelectorAll('.fade-in');
+
+        function checkVisibility() {
+            const triggerBottom = window.innerHeight * 0.85;
+            
+            fadeElements.forEach(el => {
+                const elTop = el.getBoundingClientRect().top;
+                if(elTop < triggerBottom) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', checkVisibility);
+
+        /* 승인 버튼 클릭 시: 숨겨둔 편지 오픈 & 하트 팡파르 */
+        let heartAnimationActive = false;
+        
+        function revealSecretLetter() {
+            const secretBox = document.getElementById('secret-letter-box');
+            const btn = document.getElementById('accept-btn');
+            
+            secretBox.style.display = 'block';
+            btn.style.display = 'none'; // 한 번 누르면 버튼은 숨김
+            
+            // 스크롤을 부드럽게 아래로 이동
+            setTimeout(() => {
+                secretBox.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+
+            // 하트 효과 시작
+            if (!heartAnimationActive) {
+                initHearts();
+                heartAnimationActive = true;
+            }
+        }
+
+        /* 하트 파티클 효과 스크립트 (Canvas) */
+        const canvas = document.getElementById('heart-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        class HeartParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 15 + 10;
+                this.speedY = -(Math.random() * 3 + 2);
+                this.speedX = Math.random() * 2 - 1;
+                this.opacity = Math.random() * 0.5 + 0.5;
+                this.color = `rgba(${255}, ${Math.floor(Math.random() * 60 + 150)}, ${Math.floor(Math.random() * 40 + 180)}, ${this.opacity})`;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.translate(this.x, this.y);
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-this.size/2, -this.size/2, -this.size, -this.size/3, -this.size, this.size/3);
+                ctx.bezierCurveTo(-this.size, this.size, -this.size/3, this.size*1.3, 0, this.size*1.8);
+                ctx.bezierCurveTo(this.size/3, this.size*1.3, this.size, this.size, this.size, this.size/3);
+                ctx.bezierCurveTo(this.size, -this.size/3, this.size/2, -this.size/2, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < -50) {
+                    this.y = canvas.height + 50;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        function initHearts() {
+            resizeCanvas();
+            for (let i = 0; i < 40; i++) {
+                particles.push(new HeartParticle());
+            }
+            animateHearts();
+        }
+
+        function animateHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateHearts);
+        }
+    </script>
+</body>
+</html>
